@@ -11,11 +11,28 @@ services:
     volumes: 
       - rabbitmq:/var/lib/rabbitmq
 
+  logstash:
+    image: docker.elastic.co/logstash/logstash-oss:7.8.0
+    container_name: logstash
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5044:5044"
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "9600:9600"
+    volumes:
+      - type: bind
+        source: ./logstash/pipeline
+        target: /usr/share/logstash/pipeline
+        read_only: true
+
   filebeat:
     image: docker.elastic.co/beats/filebeat-oss:7.8.0
     container_name: filebeat
     depends_on:
       - elasticsearch
+      - logstash
     volumes:
       - filebeat:/usr/share/filebeat/data
       - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
@@ -45,3 +62,4 @@ volumes:
   rabbitmq:
   filebeat:
   elasticsearch:
+  logstash:
